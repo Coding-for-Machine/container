@@ -482,6 +482,7 @@ func run() {
 func child() {
 	fmt.Println("🐳 Container PID: 1")
 
+	// Cgroup
 	cg := "/sys/fs/cgroup/minicontainer"
 	os.MkdirAll(cg, 0755)
 	defer os.RemoveAll(cg)
@@ -489,14 +490,32 @@ func child() {
 	os.WriteFile(cg+"/cpu.max", []byte("100000 100000"), 0644)
 	os.WriteFile(cg+"/cgroup.procs", []byte(fmt.Sprint(os.Getpid())), 0644)
 
+	// Hostname
 	must(syscall.Sethostname([]byte("minicontainer")))
 
-	setupOverlay()
-	must(syscall.Chroot("overlay/merged"))
+	// ✅ MUHIM: Absolyut path olish chroot'dan OLDIN
+	cwd, err := os.Getwd()
+	if err != nil {
+		fmt.Printf("❌ Working directory xatosi: %v\n", err)
+		panic(err)
+	}
+
+	// Overlay setup
+	fmt.Printf("📂 Working directory: %s\n", cwd)
+	setupOverlayWithPath(cwd)
+
+	// Chroot
+	mergedPath := cwd + "/overlay/merged"
+	if err := syscall.Chroot(mergedPath); err != nil {
+		fmt.Printf("❌ Chroot xatosi: %v\n", err)
+		panic(err)
+	}
 	must(os.Chdir("/"))
 
+	// Limits
 	setRlimits()
 
+	// Mount proc, sys, tmp
 	must(syscall.Mount("proc", "/proc", "proc", 0, ""))
 	must(syscall.Mount("sys", "/sys", "sysfs", 0, ""))
 	must(syscall.Mount("tmpfs", "/tmp", "tmpfs", 0, ""))
@@ -506,40 +525,74 @@ func child() {
 		syscall.Unmount("/tmp", 0)
 	}()
 
+	// Environment
 	os.Setenv("PATH", "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/root/.cargo/bin")
 	os.Setenv("HOME", "/root")
 	os.Setenv("TERM", "xterm-256color")
 
+	// Run command
 	cmd := exec.Command(os.Args[2], os.Args[3:]...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	err := cmd.Run()
+	err = cmd.Run()
 	if err != nil {
 		if exitErr, ok := err.(*exec.ExitError); ok {
-			fmt.Printf("Process exited with code %d\n", exitErr.ExitCode())
+			os.Exit(exitErr.ExitCode())
 		}
 	}
 
-	defer cleanupOverlay()
+	// Cleanup (chroot'dan keyin ishlamaydi, lekin defer'da bor)
+	cleanupOverlay(cwd)
 }
 
-func setupOverlay() {
-	base := "./rootfs"
-	os.MkdirAll("overlay/lower", 0755)
-	os.MkdirAll("overlay/upper", 0755)
-	os.MkdirAll("overlay/work", 0755)
-	os.MkdirAll("overlay/merged", 0755)
+// ✅ TO'G'RILANGAN - Absolyut path bilan
+func setupOverlayWithPath(cwd string) {
+	base := cwd + "/rootfs"
 
-	must(syscall.Mount(base, "overlay/lower", "", syscall.MS_BIND|syscall.MS_REC, ""))
-	opts := "lowerdir=overlay/lower,upperdir=overlay/upper,workdir=overlay/work"
-	must(syscall.Mount("overlay", "overlay/merged", "overlay", 0, opts))
+	// Rootfs mavjudligini tekshirish
+	if _, err := os.Stat(base); os.IsNotExist(err) {
+		fmt.Printf("❌ Rootfs topilmadi: %s\n", base)
+		panic(fmt.Errorf("rootfs not found at %s", base))
+	}
+
+	fmt.Printf("📂 Rootfs: %s\n", base)
+
+	// Overlay kataloglarini yaratish
+	lowerPath := cwd + "/overlay/lower"
+	upperPath := cwd + "/overlay/upper"
+	workPath := cwd + "/overlay/work"
+	mergedPath := cwd + "/overlay/merged"
+
+	os.MkdirAll(lowerPath, 0755)
+	os.MkdirAll(upperPath, 0755)
+	os.MkdirAll(workPath, 0755)
+	os.MkdirAll(mergedPath, 0755)
+
+	// Bind mount
+	if err := syscall.Mount(base, lowerPath, "", syscall.MS_BIND|syscall.MS_REC, ""); err != nil {
+		fmt.Printf("❌ Bind mount xatosi: %v\n", err)
+		panic(err)
+	}
+
+	// Overlay mount
+	opts := fmt.Sprintf("lowerdir=%s,upperdir=%s,workdir=%s", lowerPath, upperPath, workPath)
+	if err := syscall.Mount("overlay", mergedPath, "overlay", 0, opts); err != nil {
+		fmt.Printf("❌ Overlay mount xatosi: %v\n", err)
+		syscall.Unmount(lowerPath, 0)
+		panic(err)
+	}
+
+	fmt.Println("✅ Overlay filesystem tayyor")
 }
 
-func cleanupOverlay() {
-	syscall.Unmount("overlay/merged", 0)
-	syscall.Unmount("overlay/lower", 0)
-	os.RemoveAll("overlay")
+func cleanupOverlay(cwd string) {
+	mergedPath := cwd + "/overlay/merged"
+	lowerPath := cwd + "/overlay/lower"
+
+	syscall.Unmount(mergedPath, syscall.MNT_DETACH)
+	syscall.Unmount(lowerPath, syscall.MNT_DETACH)
+	os.RemoveAll(cwd + "/overlay")
 }
 
 func setRlimits() {
