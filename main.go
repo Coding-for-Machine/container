@@ -486,7 +486,7 @@ func run() {
 		Cloneflags:   syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID | syscall.CLONE_NEWNS | syscall.CLONE_NEWNET,
 		Unshareflags: syscall.CLONE_NEWNS,
 	}
-	must(cmd.Run())
+	cmd.Run()
 }
 
 func child() {
