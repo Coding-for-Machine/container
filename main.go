@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 	"syscall"
 	"time"
 
@@ -198,284 +199,260 @@ echo "╔═══════════════════════�
 echo "║    🚀 30 TA TIL - PROFESSIONAL PRODUCTION VERSION         ║"
 echo "╚═══════════════════════════════════════════════════════════╝"
 
-echo "📦 Sistema yangilanmoqda..."
 apt-get update -qq
 apt-get upgrade -y -qq
 
-echo "📦 Asosiy paketlar o'rnatilmoqda..."
+# Asosiy paketlar
 apt-get install -y -qq --no-install-recommends \
     ca-certificates curl wget git build-essential pkg-config \
-    gnupg lsb-release software-properties-common unzip xz-utils \
-    libssl-dev libffi-dev zlib1g-dev
+    gnupg lsb-release software-properties-common unzip xz-utils
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "⭐ 1. CORE LANGUAGES (C, C++, Java, C#, Python)"
+echo "⭐ CORE LANGUAGES"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-# 1-2. C/C++
-echo "🔹 C/C++ o'rnatilmoqda..."
-apt-get install -y -qq --no-install-recommends gcc g++ make
+# 1-3. C/C++/Clang
+echo "🔹 C/C++/Clang"
+apt-get install -y -qq --no-install-recommends gcc g++ clang make
 echo "   ✅ GCC: $(gcc --version | head -n1)"
 
-# 3. Java
-echo "🔹 Java o'rnatilmoqda..."
-apt-get install -y -qq --no-install-recommends openjdk-17-jdk-headless
+# 4. Java
+echo "🔹 Java"
+apt-get install -y -qq --no-install-recommends openjdk-17-jdk
 echo "   ✅ Java: $(java -version 2>&1 | head -n1)"
 
-# 4. C#
-echo "🔹 C# o'rnatilmoqda..."
-wget -q https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb -O /tmp/microsoft.deb
-dpkg -i /tmp/microsoft.deb 2>/dev/null || true
+# 5. C#
+echo "🔹 C#"
+wget -q https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb
+dpkg -i packages-microsoft-prod.deb
 apt-get update -qq
 apt-get install -y -qq --no-install-recommends dotnet-sdk-7.0
-rm -f /tmp/microsoft.deb
+rm -f packages-microsoft-prod.deb
 echo "   ✅ C#: $(dotnet --version)"
 
-# 5-6. Python (TUZATILGAN - --break-system-packages flagi olib tashlandi)
-echo "🔹 Python o'rnatilmoqda..."
-apt-get install -y -qq --no-install-recommends python3 python3-pip python3-dev python3-venv
-python3 -m pip install --no-cache-dir --upgrade pip
-python3 -m pip install --no-cache-dir numpy scipy pandas
+# 6-7. Python
+echo "🔹 Python"
+apt-get install -y -qq --no-install-recommends python3 python3-pip python3-dev pypy3
+python3 -m pip install --break-system-packages --no-cache-dir numpy scipy
 ln -sf /usr/bin/python3 /usr/bin/python
 echo "   ✅ Python: $(python3 --version)"
 
-# 7. PyPy
-echo "🔹 PyPy o'rnatilmoqda..."
-apt-get install -y -qq --no-install-recommends pypy3 || true
-echo "   ✅ PyPy: $(pypy3 --version 2>&1 | head -n1 || echo 'o‘rnatilmadi')"
-
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "🌐 2. WEB DEVELOPMENT (Node.js, PHP, Ruby, Perl)"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
-# 8-9. Node.js
-echo "🔹 Node.js o'rnatilmoqda..."
-curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-apt-get install -y -qq --no-install-recommends nodejs
-npm install -g npm@latest
-echo "   ✅ Node.js: $(node --version)"
-
-# 10. TypeScript
-echo "🔹 TypeScript o'rnatilmoqda..."
-npm install -g typescript ts-node
-echo "   ✅ TypeScript: $(tsc --version)"
-
-# 11. PHP
-echo "🔹 PHP o'rnatilmoqda..."
-apt-get install -y -qq --no-install-recommends php php-cli php-mbstring php-xml php-curl
-echo "   ✅ PHP: $(php --version | head -n1)"
-
-# 12. Ruby
-echo "🔹 Ruby o'rnatilmoqda..."
-apt-get install -y -qq --no-install-recommends ruby-full ruby-dev
-gem install --no-document bundler
-echo "   ✅ Ruby: $(ruby --version)"
-
-# 13. Perl
-echo "🔹 Perl o'rnatilmoqda..."
-apt-get install -y -qq --no-install-recommends perl
-echo "   ✅ Perl: $(perl --version | grep -o 'v[0-9.]*' | head -n1)"
-
-# 14. Lua
-echo "🔹 Lua o'rnatilmoqda..."
-apt-get install -y -qq --no-install-recommends lua5.4
-echo "   ✅ Lua: $(lua5.4 -v 2>&1 | head -n1)"
-
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "🔧 3. SYSTEMS PROGRAMMING (Rust, Go, Zig, Assembly)"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
-# 15. Rust
-echo "🔹 Rust o'rnatilmoqda..."
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile=minimal --no-modify-path
-source /root/.cargo/env
-cp /root/.cargo/bin/rustc /usr/local/bin/ 2>/dev/null || true
-cp /root/.cargo/bin/cargo /usr/local/bin/ 2>/dev/null || true
-echo "   ✅ Rust: $(rustc --version 2>/dev/null || echo 'o‘rnatilmadi')"
-
-# 16. Go
-echo "🔹 Go o'rnatilmoqda..."
-wget -q https://go.dev/dl/go1.21.6.linux-amd64.tar.gz -O /tmp/go.tar.gz
-tar -C /usr/local -xzf /tmp/go.tar.gz
-ln -sf /usr/local/go/bin/go /usr/local/bin/go
-rm -f /tmp/go.tar.gz
-echo "   ✅ Go: $(go version 2>/dev/null || echo 'o‘rnatilmadi')"
-
-# 17. Zig
-echo "🔹 Zig o'rnatilmoqda..."
-wget -q https://ziglang.org/download/0.11.0/zig-linux-x86_64-0.11.0.tar.xz -O /tmp/zig.tar.xz
-tar -xf /tmp/zig.tar.xz -C /opt
-ln -sf /opt/zig-linux-x86_64-0.11.0/zig /usr/local/bin/zig
-rm -f /tmp/zig.tar.xz
-echo "   ✅ Zig: $(zig version 2>/dev/null || echo 'o‘rnatilmadi')"
-
-# 18. Assembly
-echo "🔹 Assembly o'rnatilmoqda..."
+# 8. Assembly
+echo "🔹 Assembly"
 apt-get install -y -qq --no-install-recommends nasm
 echo "   ✅ NASM: $(nasm --version)"
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "📊 4. DATA SCIENCE (R, Julia, Octave)"
+echo "🌐 WEB DEVELOPMENT"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-# 19. R
-echo "🔹 R o'rnatilmoqda..."
-apt-get install -y -qq --no-install-recommends r-base
-echo "   ✅ R: $(R --version | head -n1)"
+# 9-10. Node.js + TypeScript
+echo "🔹 Node.js + TypeScript"
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+apt-get install -y -qq nodejs
+npm install -g npm@latest typescript ts-node
+echo "   ✅ Node: $(node --version)"
+echo "   ✅ TypeScript: $(tsc --version)"
 
-# 20. Julia
-echo "🔹 Julia o'rnatilmoqda..."
-wget -q https://julialang-s3.julialang.org/bin/linux/x64/1.9/julia-1.9.4-linux-x86_64.tar.gz -O /tmp/julia.tar.gz
-tar -xzf /tmp/julia.tar.gz -C /opt
-ln -sf /opt/julia-1.9.4/bin/julia /usr/local/bin/julia
-rm -f /tmp/julia.tar.gz
-echo "   ✅ Julia: $(julia --version 2>/dev/null || echo 'o‘rnatilmadi')"
+# 11. PHP
+echo "🔹 PHP"
+apt-get install -y -qq --no-install-recommends php php-cli php-mbstring php-xml
+echo "   ✅ PHP: $(php --version | head -n1)"
 
-# 21. Octave
-echo "🔹 Octave o'rnatilmoqda..."
-apt-get install -y -qq --no-install-recommends octave
-echo "   ✅ Octave: $(octave --version | head -n1)"
+# 12. Ruby
+echo "🔹 Ruby"
+apt-get install -y -qq --no-install-recommends ruby ruby-dev
+gem install bundler --no-document
+echo "   ✅ Ruby: $(ruby --version)"
+
+# 13. Perl
+echo "🔹 Perl"
+apt-get install -y -qq --no-install-recommends perl libperl-dev
+echo "   ✅ Perl: $(perl --version | grep -o 'v[0-9.]*' | head -n1)"
+
+# 14. Lua
+echo "🔹 Lua"
+apt-get install -y -qq --no-install-recommends lua5.4 luarocks
+echo "   ✅ Lua: $(lua5.4 -v)"
+
+# 15. Bash
+echo "🔹 Bash"
+echo "   ✅ Bash: $(bash --version | head -n1)"
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "🎯 5. FUNCTIONAL LANGUAGES (Haskell, Scala, Elixir)"
+echo "📊 DATA SCIENCE"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-# 22. Haskell
-echo "🔹 Haskell o'rnatilmoqda..."
+# 16. R
+echo "🔹 R"
+apt-get install -y -qq --no-install-recommends r-base
+echo "   ✅ R: $(R --version | head -n1)"
+
+# 17. Julia
+echo "🔹 Julia"
+cd /tmp
+wget -q https://julialang-s3.julialang.org/bin/linux/x64/1.9/julia-1.9.4-linux-x86_64.tar.gz
+tar -xzf julia-1.9.4-linux-x86_64.tar.gz -C /opt
+ln -sf /opt/julia-1.9.4/bin/julia /usr/local/bin/julia
+rm -f julia-1.9.4-linux-x86_64.tar.gz
+echo "   ✅ Julia: $(julia --version)"
+
+# 18. Octave
+echo "🔹 Octave"
+apt-get install -y -qq --no-install-recommends octave
+echo "   ✅ Octave: $(octave --version | head -n1)"
+
+# 19. Fortran
+echo "🔹 Fortran"
+apt-get install -y -qq --no-install-recommends gfortran
+echo "   ✅ Fortran: $(gfortran --version | head -n1)"
+
+# 20. COBOL
+echo "🔹 COBOL"
+apt-get install -y -qq --no-install-recommends gnucobol
+echo "   ✅ COBOL: $(cobc --version | head -n1)"
+
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "🔧 SYSTEMS PROGRAMMING"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+# 21. Rust
+echo "🔹 Rust"
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile=minimal
+source $HOME/.cargo/env
+cp -f $HOME/.cargo/bin/rustc /usr/local/bin/
+cp -f $HOME/.cargo/bin/cargo /usr/local/bin/
+echo "   ✅ Rust: $(rustc --version)"
+
+# 22. Go
+echo "🔹 Go"
+cd /tmp
+wget -q https://go.dev/dl/go1.21.6.linux-amd64.tar.gz
+tar -C /usr/local -xzf go1.21.6.linux-amd64.tar.gz
+rm -f go1.21.6.linux-amd64.tar.gz
+ln -sf /usr/local/go/bin/go /usr/local/bin/go
+ln -sf /usr/local/go/bin/gofmt /usr/local/bin/gofmt
+echo "   ✅ Go: $(go version)"
+
+# 23. Zig
+echo "🔹 Zig"
+cd /tmp
+wget -q https://ziglang.org/download/0.11.0/zig-linux-x86_64-0.11.0.tar.xz
+tar -xf zig-linux-x86_64-0.11.0.tar.xz -C /opt
+ln -sf /opt/zig-linux-x86_64-0.11.0/zig /usr/local/bin/zig
+rm -f zig-linux-x86_64-0.11.0.tar.xz
+echo "   ✅ Zig: $(zig version)"
+
+# 24. D
+echo "🔹 D"
+cd /tmp
+wget -q https://dlang.org/install.sh
+bash install.sh dmd -p /opt/dlang || true
+if [ -d /opt/dlang/dmd-* ]; then
+    ln -sf /opt/dlang/dmd-*/linux/bin64/dmd /usr/local/bin/dmd
+    echo "   ✅ D: $(dmd --version | head -n1)"
+else
+    echo "   ⚠️  D: O'rnatilmadi"
+fi
+rm -f install.sh
+
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "🎨 FUNCTIONAL"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+# 25. Haskell
+echo "🔹 Haskell"
 apt-get install -y -qq --no-install-recommends haskell-platform
 echo "   ✅ Haskell: $(ghc --version)"
 
-# 23. Scala
-echo "🔹 Scala o'rnatilmoqda..."
+# 26. Scala
+echo "🔹 Scala"
 apt-get install -y -qq --no-install-recommends scala
 echo "   ✅ Scala: $(scala --version 2>&1 | head -n1)"
 
-# 24. Elixir
-echo "🔹 Elixir o'rnatilmoqda..."
-apt-get install -y -qq --no-install-recommends elixir
+# 27. Elixir
+echo "🔹 Elixir"
+apt-get install -y -qq --no-install-recommends erlang elixir
 echo "   ✅ Elixir: $(elixir --version | head -n1)"
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "📱 6. MODERN LANGUAGES (Kotlin, Dart)"
+echo "📱 MOBILE & MODERN"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-# 25. Kotlin
-echo "🔹 Kotlin o'rnatilmoqda..."
-wget -q https://github.com/JetBrains/kotlin/releases/download/v1.9.20/kotlin-compiler-1.9.20.zip -O /tmp/kotlin.zip
-unzip -q /tmp/kotlin.zip -d /opt
+# 28. Kotlin
+echo "🔹 Kotlin"
+cd /tmp
+wget -q https://github.com/JetBrains/kotlin/releases/download/v1.9.20/kotlin-compiler-1.9.20.zip
+unzip -q kotlin-compiler-1.9.20.zip -d /opt
 ln -sf /opt/kotlinc/bin/kotlin /usr/local/bin/kotlin
 ln -sf /opt/kotlinc/bin/kotlinc /usr/local/bin/kotlinc
-rm -f /tmp/kotlin.zip
+rm -f kotlin-compiler-1.9.20.zip
 echo "   ✅ Kotlin: $(kotlin -version 2>&1 | head -n1)"
 
-# 26. Dart
-echo "🔹 Dart o'rnatilmoqda..."
+# 29. Dart
+echo "🔹 Dart"
 wget -qO- https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/dart.gpg
 echo 'deb [signed-by=/usr/share/keyrings/dart.gpg arch=amd64] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main' > /etc/apt/sources.list.d/dart_stable.list
 apt-get update -qq
 apt-get install -y -qq --no-install-recommends dart
 echo "   ✅ Dart: $(dart --version 2>&1 | head -n1)"
 
+# 30. Swift
+echo "🔹 Swift"
+cd /tmp
+wget -q https://download.swift.org/swift-5.9-release/ubuntu2204/swift-5.9-RELEASE/swift-5.9-RELEASE-ubuntu22.04.tar.gz
+tar -xzf swift-5.9-RELEASE-ubuntu22.04.tar.gz -C /opt
+ln -sf /opt/swift-5.9-RELEASE-ubuntu22.04/usr/bin/swift /usr/local/bin/swift
+ln -sf /opt/swift-5.9-RELEASE-ubuntu22.04/usr/bin/swiftc /usr/local/bin/swiftc
+rm -f swift-5.9-RELEASE-ubuntu22.04.tar.gz
+echo "   ✅ Swift: $(swift --version | head -n1)"
+
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "🗄️  7. DATABASES & TOOLS"
+echo "💾 DATABASE & TOOLS"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-# 27. SQLite
-echo "🔹 SQLite o'rnatilmoqda..."
 apt-get install -y -qq --no-install-recommends sqlite3 libsqlite3-dev
-echo "   ✅ SQLite: $(sqlite3 --version)"
-
-# 28. Git
-echo "🔹 Git o'rnatilmoqda..."
-apt-get install -y -qq --no-install-recommends git
-echo "   ✅ Git: $(git --version)"
-
-# 29. Build tools
-echo "🔹 Build tools o'rnatilmoqda..."
-apt-get install -y -qq --no-install-recommends cmake make
-echo "   ✅ CMake: $(cmake --version | head -n1)"
-
-# 30. Debug tools
-echo "🔹 Debug tools o'rnatilmoqda..."
-apt-get install -y -qq --no-install-recommends gdb strace valgrind
-echo "   ✅ GDB: $(gdb --version | head -n1)"
+apt-get install -y -qq --no-install-recommends gdb valgrind make cmake
+echo "✅ SQLite: $(sqlite3 --version)"
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "🧹 TOZALASH VA OPTIMALLASHTIRISH"
+echo "🧹 CLEANUP"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-# APT cacheni tozalash
 apt-get clean
 apt-get autoremove -y
 rm -rf /var/lib/apt/lists/*
-
-# Dokumentatsiyani tozalash
-rm -rf /usr/share/doc
-rm -rf /usr/share/man
-rm -rf /usr/share/info
-rm -rf /usr/share/locale/*
-
-# Static libraries (hajmni kamaytirish)
+rm -rf /usr/share/doc /usr/share/man /usr/share/info
+rm -rf /tmp/* /var/tmp/*
 find /usr/lib -name "*.a" -delete 2>/dev/null || true
-
-# Python bytecode
 find /usr/local -name "*.pyc" -delete 2>/dev/null || true
-find /usr/local -name "*.pyo" -delete 2>/dev/null || true
-
-# Cachelarni tozalash
-rm -rf /root/.cache
-rm -rf /root/.npm
-rm -rf /tmp/*
-rm -rf /var/tmp/*
+rm -rf /root/.cache /root/.npm
 
 echo ""
 echo "╔═══════════════════════════════════════════════════════════╗"
-echo "║              ✅ 30 TA TIL MUVOFFAQIYATLI O'RNATILDI       ║"
+echo "║              ✅ 30 TA TIL TAYYOR!                         ║"
 echo "╚═══════════════════════════════════════════════════════════╝"
-echo ""
-
-# O'rnatilgan tillarni tekshirish
-echo "📋 O'RNATILGAN TILLAR:"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
-for cmd in gcc g++ java python3 node php ruby perl rustc go zig nasm R julia octave ghc scala elixir kotlin dart sqlite3; do
-    if command -v $cmd &>/dev/null; then
-        echo "   ✅ $cmd: $(command -v $cmd)"
-    fi
-done
-
-echo ""
-echo "🚀 Endi siz quyidagi buyruqlarni ishlatishingiz mumkin:"
-echo "   sudo ./minicontainer shell"
-echo "   sudo ./minicontainer run python3 -c \"print('Hello')\""
-echo "   sudo ./minicontainer run node -e \"console.log('Hello')\""
 `
 
-	scriptPath := "rootfs/tmp/install_30langs.sh"
+	scriptPath := "rootfs/tmp/install.sh"
 	must(os.WriteFile(scriptPath, []byte(script), 0755))
 
 	fmt.Println("🔧 30 ta til o'rnatilmoqda...")
-	fmt.Println("   ⏱️  Bu 15-20 daqiqa davom etishi mumkin")
-	fmt.Println("   ☕ Choy ichib kuting!")
-
-	cmd := exec.Command("sudo", "chroot", "rootfs", "/bin/bash", "/tmp/install_30langs.sh")
+	cmd := exec.Command("sudo", "chroot", "rootfs", "/bin/bash", "/tmp/install.sh")
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Run(); err != nil {
-		fmt.Printf("⚠️ Ba'zi tillar o'rnatilmadi: %v\n", err)
-		fmt.Println("✅ Asosiy tillar ishlaydi")
-	} else {
-		fmt.Println("✅ Barcha tillar muvaffaqiyatli o'rnatildi!")
+		fmt.Printf("⚠️ Xatolik: %v\n", err)
 	}
 
 	os.Remove(scriptPath)
