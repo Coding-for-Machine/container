@@ -486,7 +486,7 @@ func run() {
 		Cloneflags:   syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID | syscall.CLONE_NEWNS | syscall.CLONE_NEWNET,
 		Unshareflags: syscall.CLONE_NEWNS,
 	}
-	cmd.Run()
+	must(cmd.Run())
 }
 
 func child() {
@@ -573,41 +573,25 @@ func child() {
 //		must(syscall.Mount("overlay", merged, "overlay", 0, opts))
 //	}
 func setupOverlay(cwd string) {
-	// Overlay modulini yuklash
-	exec.Command("modprobe", "overlay").Run()
-
-	// Absolute paths
 	base := cwd + "/rootfs"
 	lower := cwd + "/overlay/lower"
 	upper := cwd + "/overlay/upper"
 	work := cwd + "/overlay/work"
 	merged := cwd + "/overlay/merged"
 
-	// Kataloglar
 	os.RemoveAll(cwd + "/overlay")
-	os.MkdirAll(lower, 0755)
-	os.MkdirAll(upper, 0755)
-	os.MkdirAll(work, 0755)
-	os.MkdirAll(merged, 0755)
+	must(os.MkdirAll(lower, 0755))
+	must(os.MkdirAll(upper, 0755))
+	must(os.MkdirAll(work, 0755))
+	must(os.MkdirAll(merged, 0755))
 
-	// SELinux context (CentOS uchun)
-	exec.Command("chcon", "-Rt", "svirt_sandbox_file_t", lower).Run()
-	exec.Command("chcon", "-Rt", "svirt_sandbox_file_t", upper).Run()
-	exec.Command("chcon", "-Rt", "svirt_sandbox_file_t", work).Run()
+	// bind mount rootfs → lower
+	must(syscall.Mount(base, lower, "", syscall.MS_BIND|syscall.MS_REC, ""))
 
-	// Bind mount (exec bilan)
-	exec.Command("mount", "--bind", base, lower).Run()
-
-	// Overlay mount (exec bilan)
 	opts := fmt.Sprintf("lowerdir=%s,upperdir=%s,workdir=%s",
 		lower, upper, work)
 
-	cmd := exec.Command("mount", "-t", "overlay", "overlay",
-		"-o", opts, merged)
-	if err := cmd.Run(); err != nil {
-		fmt.Printf("Mount xatosi: %v\n", err)
-		panic(err)
-	}
+	must(syscall.Mount("overlay", merged, "overlay", 0, opts))
 }
 
 func cleanupOverlay(cwd string) {
