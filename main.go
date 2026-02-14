@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"strconv"
 	"syscall"
 	"time"
 
@@ -41,12 +40,11 @@ func printHelp() {
 	fmt.Println()
 	fmt.Println("Foydalanish:")
 	fmt.Println("  build               - Container rootfs yaratish (30 til)")
-	fmt.Println("  shell               - Container ichida shell ochish")
 	fmt.Println("  run <cmd> [args]    - Buyruqni container ichida bajarish")
 	fmt.Println()
 	fmt.Println("Misollar:")
 	fmt.Println("  sudo ./minicontainer build")
-	fmt.Println("  sudo ./minicontainer shell")
+	fmt.Println("  sudo ./minicontainer run /bin/bash")
 	fmt.Println("  sudo ./minicontainer run python3 --version")
 }
 
@@ -80,7 +78,7 @@ func buildContainer() {
 	fmt.Println("╚═══════════════════════════════════════════════════════════╝")
 	fmt.Println()
 	fmt.Println("Ishlatish:")
-	fmt.Println("   sudo ./minicontainer shell")
+	fmt.Println("   sudo ./minicontainer run /bin/bash")
 	fmt.Println()
 	fmt.Println("Hajm:")
 	cmd := exec.Command("du", "-sh", "rootfs")
@@ -91,7 +89,6 @@ func buildContainer() {
 func downloadUbuntuBase() {
 	tarball := "/tmp/ubuntu-base.tar.gz"
 
-	// Fayl validatsiyasi
 	if stat, err := os.Stat(tarball); err == nil {
 		fmt.Println("   ✓ Mavjud fayl tekshirilmoqda...")
 		if stat.Size() < 20*1024*1024 {
@@ -108,7 +105,6 @@ func downloadUbuntuBase() {
 		}
 	}
 
-	// Yuklab olish
 	if _, err := os.Stat(tarball); os.IsNotExist(err) {
 		fmt.Println("   📥 Ubuntu 22.04 yuklanmoqda...")
 		for i := 1; i <= 3; i++ {
@@ -134,7 +130,6 @@ func downloadUbuntuBase() {
 		}
 	}
 
-	// Rootfs validatsiyasi
 	needsExtract := false
 	if isEmpty("rootfs") {
 		fmt.Println("   📁 rootfs bo'sh")
@@ -161,7 +156,6 @@ func downloadUbuntuBase() {
 		}
 	}
 
-	// Extract
 	if needsExtract {
 		fmt.Println("   📂 Extract qilinmoqda...")
 		cmd := exec.Command("sudo", "tar", "-xzf", tarball, "-C", "rootfs")
@@ -199,7 +193,6 @@ echo "╚═══════════════════════�
 apt-get update -qq
 apt-get upgrade -y -qq
 
-# Asosiy paketlar
 apt-get install -y -qq --no-install-recommends \
     ca-certificates curl wget git build-essential pkg-config \
     gnupg lsb-release software-properties-common unzip xz-utils
@@ -209,17 +202,14 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "⭐ CORE LANGUAGES"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-# 1-3. C/C++/Clang
 echo "🔹 C/C++/Clang"
 apt-get install -y -qq --no-install-recommends gcc g++ clang make
 echo "   ✅ GCC: $(gcc --version | head -n1)"
 
-# 4. Java
 echo "🔹 Java"
 apt-get install -y -qq --no-install-recommends openjdk-17-jdk
 echo "   ✅ Java: $(java -version 2>&1 | head -n1)"
 
-# 5. C#
 echo "🔹 C#"
 wget -q https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb
 dpkg -i packages-microsoft-prod.deb
@@ -228,14 +218,12 @@ apt-get install -y -qq --no-install-recommends dotnet-sdk-7.0
 rm -f packages-microsoft-prod.deb
 echo "   ✅ C#: $(dotnet --version)"
 
-# 6-7. Python
 echo "🔹 Python"
 apt-get install -y -qq --no-install-recommends python3 python3-pip python3-dev pypy3
 python3 -m pip install --break-system-packages --no-cache-dir numpy scipy
 ln -sf /usr/bin/python3 /usr/bin/python
 echo "   ✅ Python: $(python3 --version)"
 
-# 8. Assembly
 echo "🔹 Assembly"
 apt-get install -y -qq --no-install-recommends nasm
 echo "   ✅ NASM: $(nasm --version)"
@@ -245,7 +233,6 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "🌐 WEB DEVELOPMENT"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-# 9-10. Node.js + TypeScript
 echo "🔹 Node.js + TypeScript"
 curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 apt-get install -y -qq nodejs
@@ -253,28 +240,23 @@ npm install -g npm@latest typescript ts-node
 echo "   ✅ Node: $(node --version)"
 echo "   ✅ TypeScript: $(tsc --version)"
 
-# 11. PHP
 echo "🔹 PHP"
 apt-get install -y -qq --no-install-recommends php php-cli php-mbstring php-xml
 echo "   ✅ PHP: $(php --version | head -n1)"
 
-# 12. Ruby
 echo "🔹 Ruby"
 apt-get install -y -qq --no-install-recommends ruby ruby-dev
 gem install bundler --no-document
 echo "   ✅ Ruby: $(ruby --version)"
 
-# 13. Perl
 echo "🔹 Perl"
 apt-get install -y -qq --no-install-recommends perl libperl-dev
 echo "   ✅ Perl: $(perl --version | grep -o 'v[0-9.]*' | head -n1)"
 
-# 14. Lua
 echo "🔹 Lua"
 apt-get install -y -qq --no-install-recommends lua5.4 luarocks
 echo "   ✅ Lua: $(lua5.4 -v)"
 
-# 15. Bash
 echo "🔹 Bash"
 echo "   ✅ Bash: $(bash --version | head -n1)"
 
@@ -283,12 +265,10 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "📊 DATA SCIENCE"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-# 16. R
 echo "🔹 R"
 apt-get install -y -qq --no-install-recommends r-base
 echo "   ✅ R: $(R --version | head -n1)"
 
-# 17. Julia
 echo "🔹 Julia"
 cd /tmp
 wget -q https://julialang-s3.julialang.org/bin/linux/x64/1.9/julia-1.9.4-linux-x86_64.tar.gz
@@ -297,17 +277,14 @@ ln -sf /opt/julia-1.9.4/bin/julia /usr/local/bin/julia
 rm -f julia-1.9.4-linux-x86_64.tar.gz
 echo "   ✅ Julia: $(julia --version)"
 
-# 18. Octave
 echo "🔹 Octave"
 apt-get install -y -qq --no-install-recommends octave
 echo "   ✅ Octave: $(octave --version | head -n1)"
 
-# 19. Fortran
 echo "🔹 Fortran"
 apt-get install -y -qq --no-install-recommends gfortran
 echo "   ✅ Fortran: $(gfortran --version | head -n1)"
 
-# 20. COBOL
 echo "🔹 COBOL"
 apt-get install -y -qq --no-install-recommends gnucobol
 echo "   ✅ COBOL: $(cobc --version | head -n1)"
@@ -317,7 +294,6 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "🔧 SYSTEMS PROGRAMMING"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-# 21. Rust
 echo "🔹 Rust"
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile=minimal
 source $HOME/.cargo/env
@@ -325,7 +301,6 @@ cp -f $HOME/.cargo/bin/rustc /usr/local/bin/
 cp -f $HOME/.cargo/bin/cargo /usr/local/bin/
 echo "   ✅ Rust: $(rustc --version)"
 
-# 22. Go
 echo "🔹 Go"
 cd /tmp
 wget -q https://go.dev/dl/go1.21.6.linux-amd64.tar.gz
@@ -335,7 +310,6 @@ ln -sf /usr/local/go/bin/go /usr/local/bin/go
 ln -sf /usr/local/go/bin/gofmt /usr/local/bin/gofmt
 echo "   ✅ Go: $(go version)"
 
-# 23. Zig
 echo "🔹 Zig"
 cd /tmp
 wget -q https://ziglang.org/download/0.11.0/zig-linux-x86_64-0.11.0.tar.xz
@@ -344,7 +318,6 @@ ln -sf /opt/zig-linux-x86_64-0.11.0/zig /usr/local/bin/zig
 rm -f zig-linux-x86_64-0.11.0.tar.xz
 echo "   ✅ Zig: $(zig version)"
 
-# 24. D
 echo "🔹 D"
 cd /tmp
 wget -q https://dlang.org/install.sh
@@ -362,17 +335,14 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "🎨 FUNCTIONAL"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-# 25. Haskell
 echo "🔹 Haskell"
 apt-get install -y -qq --no-install-recommends haskell-platform
 echo "   ✅ Haskell: $(ghc --version)"
 
-# 26. Scala
 echo "🔹 Scala"
 apt-get install -y -qq --no-install-recommends scala
 echo "   ✅ Scala: $(scala --version 2>&1 | head -n1)"
 
-# 27. Elixir
 echo "🔹 Elixir"
 apt-get install -y -qq --no-install-recommends erlang elixir
 echo "   ✅ Elixir: $(elixir --version | head -n1)"
@@ -382,7 +352,6 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "📱 MOBILE & MODERN"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-# 28. Kotlin
 echo "🔹 Kotlin"
 cd /tmp
 wget -q https://github.com/JetBrains/kotlin/releases/download/v1.9.20/kotlin-compiler-1.9.20.zip
@@ -392,7 +361,6 @@ ln -sf /opt/kotlinc/bin/kotlinc /usr/local/bin/kotlinc
 rm -f kotlin-compiler-1.9.20.zip
 echo "   ✅ Kotlin: $(kotlin -version 2>&1 | head -n1)"
 
-# 29. Dart
 echo "🔹 Dart"
 wget -qO- https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/dart.gpg
 echo 'deb [signed-by=/usr/share/keyrings/dart.gpg arch=amd64] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main' > /etc/apt/sources.list.d/dart_stable.list
@@ -400,7 +368,6 @@ apt-get update -qq
 apt-get install -y -qq --no-install-recommends dart
 echo "   ✅ Dart: $(dart --version 2>&1 | head -n1)"
 
-# 30. Swift
 echo "🔹 Swift"
 cd /tmp
 wget -q https://download.swift.org/swift-5.9-release/ubuntu2204/swift-5.9-RELEASE/swift-5.9-RELEASE-ubuntu22.04.tar.gz
@@ -476,9 +443,11 @@ func run() {
 	}
 	must(cmd.Run())
 }
-func child() {
-	fmt.Println("Container PID: 1 | Hostname: minicontainer")
 
+func child() {
+	fmt.Println("🐳 Container PID: 1")
+
+	// Cgroup
 	cg := "/sys/fs/cgroup/minicontainer"
 	os.MkdirAll(cg, 0755)
 	defer os.RemoveAll(cg)
@@ -486,14 +455,27 @@ func child() {
 	os.WriteFile(cg+"/cpu.max", []byte("100000 100000"), 0644)
 	os.WriteFile(cg+"/cgroup.procs", []byte(fmt.Sprint(os.Getpid())), 0644)
 
+	// Hostname
 	must(syscall.Sethostname([]byte("minicontainer")))
 
-	setupOverlay()
-	must(syscall.Chroot("overlay/merged"))
+	// ✅ Absolyut path olish (chroot'dan OLDIN)
+	cwd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	// Overlay setup
+	setupOverlay(cwd)
+
+	// Chroot
+	mergedPath := cwd + "/overlay/merged"
+	must(syscall.Chroot(mergedPath))
 	must(os.Chdir("/"))
 
+	// Limits
 	setRlimits()
 
+	// Mount
 	must(syscall.Mount("proc", "/proc", "proc", 0, ""))
 	must(syscall.Mount("sys", "/sys", "sysfs", 0, ""))
 	must(syscall.Mount("tmpfs", "/tmp", "tmpfs", 0, ""))
@@ -503,57 +485,52 @@ func child() {
 		syscall.Unmount("/tmp", 0)
 	}()
 
-	os.Setenv("PATH", "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin")
+	// Environment
+	os.Setenv("PATH", "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/root/.cargo/bin")
 	os.Setenv("HOME", "/root")
 	os.Setenv("TERM", "xterm-256color")
 
+	// Run command
 	cmd := exec.Command(os.Args[2], os.Args[3:]...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	err := cmd.Run()
+	err = cmd.Run()
 	if err != nil {
 		if exitErr, ok := err.(*exec.ExitError); ok {
-			fmt.Printf("Process exited with code %d\n", exitErr.ExitCode())
-		} else {
-			panic(err) // haqiqiy xato
+			os.Exit(exitErr.ExitCode())
 		}
 	}
 
-	defer cleanupOverlay()
+	defer cleanupOverlay(cwd)
 }
 
-func setupOverlay() {
-	id := strconv.Itoa(os.Getpid())
-	base := "./rootfs"
+// ✅ TO'G'RILANGAN - Absolyut path ishlatilgan
+func setupOverlay(cwd string) {
+	base := cwd + "/rootfs"
+	lower := cwd + "/overlay/lower"
+	upper := cwd + "/overlay/upper"
+	work := cwd + "/overlay/work"
+	merged := cwd + "/overlay/merged"
 
-	overlayBase := "./overlay/" + id
-	lower := overlayBase + "/lower"
-	upper := overlayBase + "/upper"
-	work := overlayBase + "/work"
-	merged := overlayBase + "/merged"
+	// Kataloglar yaratish
+	os.MkdirAll(lower, 0755)
+	os.MkdirAll(upper, 0755)
+	os.MkdirAll(work, 0755)
+	os.MkdirAll(merged, 0755)
 
-	// 1. Directorylarni yaratish
-	must(os.MkdirAll(lower, 0755))
-	must(os.MkdirAll(upper, 0755))
-	must(os.MkdirAll(work, 0755))
-	must(os.MkdirAll(merged, 0755))
-
-	// 2. rootfs → lower bind mount
+	// Bind mount
 	must(syscall.Mount(base, lower, "", syscall.MS_BIND|syscall.MS_REC, ""))
 
-	// 3. Overlay mount
-	opts := fmt.Sprintf(
-		"lowerdir=%s,upperdir=%s,workdir=%s",
-		lower, upper, work,
-	)
+	// Overlay mount
+	opts := fmt.Sprintf("lowerdir=%s,upperdir=%s,workdir=%s", lower, upper, work)
 	must(syscall.Mount("overlay", merged, "overlay", 0, opts))
 }
 
-func cleanupOverlay() {
-	syscall.Unmount("overlay/merged", 0)
-	syscall.Unmount("overlay/lower", 0)
-	os.RemoveAll("overlay")
+func cleanupOverlay(cwd string) {
+	syscall.Unmount(cwd+"/overlay/merged", syscall.MNT_DETACH)
+	syscall.Unmount(cwd+"/overlay/lower", syscall.MNT_DETACH)
+	os.RemoveAll(cwd + "/overlay")
 }
 
 func mountForInstall() {
@@ -586,6 +563,7 @@ func setRlimits() {
 	unix.Setrlimit(unix.RLIMIT_STACK, &unix.Rlimit{Cur: 8 * 1024 * 1024, Max: 8 * 1024 * 1024})
 	unix.Setrlimit(unix.RLIMIT_CORE, &unix.Rlimit{Cur: 0, Max: 0})
 }
+
 func isEmpty(dir string) bool {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
